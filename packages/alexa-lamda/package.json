@@ -1,0 +1,38 @@
+{
+  "name": "lamda",
+  "version": "0.0.1",
+  "description": "",
+  "license": "GPL-3.0-only",
+  "author": "shinyoshiaki2012@gmail.com",
+  "type": "module",
+  "main": "lib/index.js",
+  "module": "lib/index.mjs",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "build": "run-s compile:type compile:esm compile:cjs",
+    "compile:cjs": "esbuild src/index.ts --bundle --platform=node --format=cjs --target=es2020 --outfile=lib/index.js",
+    "compile:esm": "esbuild src/index.ts --bundle --platform=node --format=esm --target=es2020 --outfile=lib/index.mjs",
+    "compile:type": "rm -rf lib && tsc -p tsconfig.production.json --emitDeclarationOnly",
+    "cloudrun": "esbuild src/for_cloudrun_edition.ts --bundle --platform=node --format=esm --target=es2020 --outfile=lib/index.mjs",
+    "deploy": "npm run build && npm publish --access public",
+    "doc": "run-s schema html",
+    "html": "npx redoc-cli bundle ./docs/openapi.json -o ./docs/openapi.html",
+    "lint": "biome check --write src",
+    "schema": "ts-node scripts/openapi.ts",
+    "type": "tsc -p ./tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@sinclair/typebox": "^0.28.18",
+    "openapi3-ts": "^4.1.2",
+    "sdp-transform": "^2.15.0",
+    "uuid": "^11.0.5",
+    "werift": "^0.21.6"
+  },
+  "devDependencies": {
+    "@types/sdp-transform": "^2.4.9",
+    "@types/uuid": "^10.0.0"
+  }
+}

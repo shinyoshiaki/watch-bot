@@ -1,0 +1,44 @@
+{
+  "name": "alexa-chat-gpt",
+  "version": "0.0.1",
+  "private": true,
+  "description": "",
+  "license": "GPL-3.0-only",
+  "author": "shinyoshiaki",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "#add-package": "npm init -w libs/a",
+    "dev": "tsx watch --env-file=.env examples/dev.ts",
+    "lint": "npm run lint --workspaces --if-present",
+    "type": "npm run type --workspaces --if-present",
+    "upgrade-interactive": "npm-check --update",
+    "web": "rm -rf .parcel-cache && rm -rf dist && parcel examples/web/index.html",
+    "service:docker-build": ". ./.env && docker build -f ./packages/service/Dockerfile -t $SERVICE_DOCKER .",
+    "service:docker-run": ". ./.env && docker run -p 3001:3001 $SERVICE_DOCKER",
+    "service:docker-push": ". ./.env && docker push $SERVICE_DOCKER",
+    "service:docker-deploy": "run-s service:docker-build service:docker-push"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@google-cloud/vertexai": "^1.9.3",
+    "@types/node": "^20.3.1",
+    "esbuild": "^0.18.20",
+    "npm-check": "^6.0.1",
+    "npm-run-all2": "^7.0.2 ",
+    "organize-imports-cli": "^0.10.0",
+    "parcel": "^2.13.3",
+    "process": "^0.11.10",
+    "react-dom": "^19.0.0",
+    "redoc-cli": "^0.13.21",
+    "tsx": "^4.19.2",
+    "typescript": "^5.1.3",
+    "zx": "^7.2.1"
+  },
+  "packageManager": "npm@10.9.2",
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "name": "@watch-bot/core",
+  "version": "0.0.1",
+  "description": "",
+  "license": "GPL-3.0-only",
+  "author": "shinyoshiaki2012@gmail.com",
+  "type": "module",
+  "main": "lib/index.js",
+  "module": "lib/index.mjs",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "build": "run-s compile:type compile:esm compile:cjs",
+    "compile:cjs": "esbuild src/index.ts --bundle --platform=node --format=cjs --packages=external --target=es2020 --outfile=lib/index.js",
+    "compile:esm": "esbuild src/index.ts --bundle --platform=node --format=esm --packages=external --target=es2020 --outfile=lib/index.mjs",
+    "compile:type": "rm -rf lib && tsc -p tsconfig.production.json --emitDeclarationOnly",
+    "dev": "tsx watch --env-file=../../.env src/index.ts",
+    "debug": "esbuild ./debug.mts --format=esm --packages=external --bundle --outfile=./debug.mjs && node debug.mjs",
+    "lint": "biome check --write src",
+    "type": "tsc -p ./tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@discordjs/opus": "^0.10.0",
+    "rxjs": "^7.8.1",
+    "@werift/whip-server": "^0.0.1",
+    "@google/generative-ai": "^0.21.0",
+    "@hono/node-server": "^1.13.7",
+    "@sinclair/typebox": "^0.28.18",
+    "@werift/gemini-webrtc": "^0.0.5",
+    "@werift/openai-webrtc": "^0.0.5",
+    "googleapis": "^144.0.0",
+    "hono": "^4.6.16",
+    "openapi3-ts": "^4.1.2",
+    "ring-client-api": "^13.2.1",
+    "sdp-transform": "^2.15.0",
+    "uuid": "^11.0.5",
+    "werift": "^0.21.14"
+  },
+  "devDependencies": {
+    "@types/sdp-transform": "^2.4.9",
+    "@types/uuid": "^10.0.0"
+  }
+}

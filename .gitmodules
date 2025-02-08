@@ -1,0 +1,9 @@
+[submodule "submodules/gemini"]
+	path = submodules/gemini
+	url = git@github.com:shinyoshiaki/gemini-webrtc-nodejs.git
+[submodule "submodules/wish"]
+	path = submodules/wish
+	url = git@github.com:shinyoshiaki/node-whip-whep.git
+[submodule "submodules/werift"]
+	path = submodules/werift
+	url = git@github.com:shinyoshiaki/werift-webrtc.git

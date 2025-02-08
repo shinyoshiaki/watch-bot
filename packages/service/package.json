@@ -1,0 +1,58 @@
+{
+  "name": "@watch-bot/service",
+  "version": "0.0.1",
+  "description": "",
+  "license": "GPL-3.0-only",
+  "author": "shinyoshiaki2012@gmail.com",
+  "type": "module",
+  "main": "lib/index.js",
+  "module": "lib/index.mjs",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "build": "run-s compile:type compile:esm",
+    "client": "tsx watch --env-file=../../.env examples/client.ts",
+    "compile": "run-s compile:esm",
+    "compile:esm": "esbuild src/main.ts --bundle --platform=node --format=esm --packages=external --target=es2022 --outfile=lib/index.mjs",
+    "compile:type": "rm -rf lib && tsc -p tsconfig.production.json --emitDeclarationOnly",
+    "lint": "biome check --write src",
+    "server": "tsx watch --env-file=../../.env src/main.ts",
+    "debug": "esbuild ./examples/client.ts --format=esm --packages=external --bundle --outfile=./debug.mjs && node --env-file=../../.env debug.mjs",
+    "ds": "esbuild ./src/main.ts --format=esm --packages=external --bundle --outfile=./ds.mjs && node ds.mjs",
+    "type": "tsc -p ./tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@discordjs/opus": "^0.10.0",
+    "@google/generative-ai": "^0.21.0",
+    "@hono/node-server": "^1.13.7",
+    "@sinclair/typebox": "^0.28.18",
+    "@watch-bot/core": "file:../core",
+    "@werift/gemini-webrtc": "^0.0.5",
+    "@werift/json-rpc": "file:../json-rpc",
+    "@werift/openai-webrtc": "^0.0.5",
+    "@werift/whip-server": "^0.0.1",
+    "esbuild": "^0.24.2",
+    "google-auth-library": "^9.15.1",
+    "googleapis": "^144.0.0",
+    "hono": "^4.6.16",
+    "npm-run-all2": "^7.0.2",
+    "openapi3-ts": "^4.1.2",
+    "ring-client-api": "^13.2.1",
+    "sdp-transform": "^2.15.0",
+    "typescript": "^5.7.3",
+    "uuid": "^11.0.5",
+    "werift": "^0.21.12",
+    "ws": "^8.18.0",
+    "zx": "^8.3.1"
+  },
+  "devDependencies": {
+    "@types/sdp-transform": "^2.4.9",
+    "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.5.14",
+    "@werift/whip": "^0.0.2",
+    "naudiodon": "^2.3.6",
+    "speaker": "^0.5.5"
+  }
+}
