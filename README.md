@@ -36,15 +36,15 @@
 ## センサーのクレデンシャルの発行方法
 
 - Ring
-    - https://github.com/dgreif/ring/wiki/Refresh-Tokens
-    - 発行したトークンは.envのRING_REFRESH_TOKENに入れる
+  - https://github.com/dgreif/ring/wiki/Refresh-Tokens
+  - 発行したトークンは.envのRING_REFRESH_TOKENに入れる
 - Nest
-    -https://github.com/potmat/homebridge-google-nest-sdm?tab=readme-ov-file#where-do-the-config-values-come-from
-    - 発行した情報は.envの以下に入れる
-        - CLIENT_ID
-        - CLIENT_SECRET
-        - PROJECT_ID
-        - REFRESH_TOKEN
+  -https://github.com/potmat/homebridge-google-nest-sdm?tab=readme-ov-file#where-do-the-config-values-come-from
+  - 発行した情報は.envの以下に入れる
+    - CLIENT_ID
+    - CLIENT_SECRET
+    - PROJECT_ID
+    - REFRESH_TOKEN
 
 また開発用サーバのコードを書き換える必要があります。
 次のようにnestやringのコメントアウト箇所を解除してください。
