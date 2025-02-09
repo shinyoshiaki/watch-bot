@@ -10,6 +10,9 @@
 - Ubuntuが推奨環境
     - 作者はUbuntu24 on WSL2
 - Node.js 20以降をインストール
+- [Dockerfile](/packages/service/Dockerfile)を参考に以下の依存パッケージをOSにインストールする
+    - ffmpeg
+    - build-essential
 - このリポジトリをクローン
 - RUN `git submodule update --init --recursive`
 - RUN `npm i`
