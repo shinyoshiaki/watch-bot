@@ -34,6 +34,7 @@
 - agentの呼び出し
     - call to agentのcallボタンを押す
         - 通話が開始される
+- タスクが完了すると`packages/service`ディレクトリに録画ファイル(*.webm)が出力される
 
 ## ハードウェアの追加
 
