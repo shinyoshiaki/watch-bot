@@ -1,30 +1,19 @@
 import { randomUUID } from "crypto";
-import { serve } from "@hono/node-server";
-import { Hono } from "hono";
-import { cors } from "hono/cors";
-import { MediaStreamTrack, RTCPeerConnection, type RtpPacket } from "werift";
+import {
+  MediaStreamTrack,
+  RTCPeerConnection,
+  type types,
+} from "../imports/werift.js";
 import { FrontDevice } from "./base.js";
 
 export class AlexaFrontDevice extends FrontDevice {
   static readonly deviceName = "alexa";
   readonly name = randomUUID();
   private readonly track = new MediaStreamTrack({ kind: "audio" });
-  private pc!: RTCPeerConnection;
+  private pc!: types.RTCPeerConnection;
 
-  constructor({ port }: { port?: number }) {
+  constructor() {
     super();
-    if (port != undefined) {
-      const app = new Hono();
-      app.use("/*", cors());
-      app.post("/offer", async (c) => {
-        const { sdp } = await c.req.json();
-        console.log("alexa offer", sdp);
-        const answer = await this.handleOffer(sdp);
-        return c.text(answer.answer);
-      });
-
-      serve({ fetch: app.fetch, port });
-    }
   }
 
   private createPc() {
@@ -60,11 +49,11 @@ export class AlexaFrontDevice extends FrontDevice {
     return { answer: answer.toSdp().sdp };
   }
 
-  handleAudio(rtp: RtpPacket) {
+  handleAudio(rtp: types.RtpPacket) {
     this.track.writeRtp(rtp);
   }
 
-  handleVideo(rtp: RtpPacket): void {}
+  handleVideo(rtp: types.RtpPacket): void {}
 
   async handleIceCandidate(candidate: any): Promise<any> {}
 }

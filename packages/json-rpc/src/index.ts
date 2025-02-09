@@ -180,6 +180,7 @@ export class JsonRpcClient {
   constructor(
     private send: TransportSendFunction,
     onMessage: TransportOnMessageFunction,
+    private ready: () => Promise<void> = async () => {},
   ) {
     // 受信時のコールバックを登録
     onMessage(this.onMessage.bind(this));
@@ -219,7 +220,9 @@ export class JsonRpcClient {
    * @param method - 呼び出すメソッド名
    * @param params - メソッドパラメータ
    */
-  public call(method: string, params?: any): Promise<any> {
+  public async call<T = any>(method: string, params?: any): Promise<T> {
+    await this.ready();
+
     const id = this.idCounter++;
     const request: JsonRpcRequest = {
       jsonrpc: "2.0",
@@ -244,7 +247,8 @@ export class JsonRpcClient {
    * @param method - 通知するメソッド名
    * @param params - パラメータ
    */
-  public notify(method: string, params?: any): void {
+  public async notify(method: string, params?: any) {
+    await this.ready();
     const request: JsonRpcRequest = {
       jsonrpc: "2.0",
       method,
@@ -266,4 +270,20 @@ export const parseErrorResponse = {
   jsonrpc: "2.0",
   error: { code: -32700, message: "Parse error" },
   id: null,
+};
+
+export const websocketAdapter = (ws: WebSocket) => {
+  const send: TransportSendFunction = (message) => ws.send(message);
+  const onMessage: TransportOnMessageFunction = (cb) =>
+    ws.addEventListener("message", (e) => cb(e.data));
+  const ready = () => {
+    return new Promise<void>((resolve) => {
+      if (ws.readyState === WebSocket.OPEN) {
+        resolve();
+      } else {
+        ws.addEventListener("open", () => resolve());
+      }
+    });
+  };
+  return [send, onMessage, ready] as const;
 };

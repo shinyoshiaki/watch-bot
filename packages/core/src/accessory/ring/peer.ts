@@ -1,14 +1,12 @@
 import type { Observable } from "rxjs";
 import { ReplaySubject, Subject, interval, merge } from "rxjs";
 /* eslint-disable brace-style */
-import type { RTCIceCandidate, RtpPacket } from "werift";
 import {
-  type ConnectionState,
   MediaStreamTrack,
   RTCPeerConnection,
   RTCRtpCodecParameters,
-  type RtcpPacket,
-} from "werift";
+  type types,
+} from "../../imports/werift.js";
 import { Subscribed } from "./subscribed.js";
 
 const ringIceServers = [
@@ -26,8 +24,8 @@ export interface BasicPeerConnection {
   createOffer(): Promise<{ sdp: string }>;
   acceptAnswer(answer: { type: "answer"; sdp: string }): Promise<void>;
   addIceCandidate(candidate: Partial<RTCIceCandidate>): Promise<void>;
-  onIceCandidate: Observable<RTCIceCandidate>;
-  onConnectionState: Observable<ConnectionState>;
+  onIceCandidate: Observable<types.RTCIceCandidate>;
+  onConnectionState: Observable<types.ConnectionState>;
   close(): void;
   requestKeyFrame?: () => void;
 }
@@ -36,13 +34,13 @@ export class WeriftPeerConnection
   extends Subscribed
   implements BasicPeerConnection
 {
-  pc: RTCPeerConnection;
-  onAudioRtp = new Subject<RtpPacket>();
-  onAudioRtcp = new Subject<RtcpPacket>();
-  onVideoRtp = new Subject<RtpPacket>();
-  onVideoRtcp = new Subject<RtcpPacket>();
-  onIceCandidate = new Subject<RTCIceCandidate>();
-  onConnectionState = new ReplaySubject<ConnectionState>(1);
+  pc: types.RTCPeerConnection;
+  onAudioRtp = new Subject<types.RtpPacket>();
+  onAudioRtcp = new Subject<types.RtcpPacket>();
+  onVideoRtp = new Subject<types.RtpPacket>();
+  onVideoRtcp = new Subject<types.RtcpPacket>();
+  onIceCandidate = new Subject<types.RTCIceCandidate>();
+  onConnectionState = new ReplaySubject<types.ConnectionState>(1);
   returnAudioTrack = new MediaStreamTrack({ kind: "audio" });
   private onRequestKeyFrame = new Subject<void>();
 

@@ -1,15 +1,42 @@
 import type { FC } from "react";
 import { createRoot } from "react-dom/client";
-import { WhipSender } from "@werift/whip";
 import { useRef, useState } from "react";
+import {
+  JsonRpcClient,
+  websocketAdapter,
+} from "@shinyoshiaki/json-rpc/src/index.js";
+import type {
+  FunctionFrontCall,
+  FunctionFrontCallResponseWhip,
+  FunctionFrontNegotiation,
+  FunctionFrontNegotiationPayloadWhip,
+  FunctionSensorAdd,
+  FunctionSensorAddResponse,
+  FunctionSensorNegotiation,
+} from "../../packages/service/src/schema.js";
+
+const defaultUserId = process.env.USER_ID ?? "";
+// const endpoint = process.env.SERVICE_ENDPOINT ?? "ws://localhost:3001";
+const endpoint = "ws://localhost:3001";
+
+const NEST_CLIENT_ID = process.env.NEST_CLIENT_ID;
+const NEST_CLIENT_SECRET = process.env.NEST_CLIENT_SECRET;
+const NEST_PROJECT_ID = process.env.NEST_PROJECT_ID;
+const NEST_REFRESH_TOKEN = process.env.NEST_REFRESH_TOKEN;
+const RING_REFRESH_TOKEN = process.env.RING_REFRESH_TOKEN;
 
 const App: FC = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [inputPort, setInputPort] = useState<string>("9999");
+  const [userId, setUserId] = useState<string>(
+    defaultUserId.length > 0
+      ? defaultUserId
+      : "web_browser_" + Math.random().toString(36).slice(-8),
+  );
+  const [inputSensorId, setSensorId] = useState<string>(
+    Math.random().toString(36).slice(-8),
+  );
 
   const call = async () => {
-    const url = "http://localhost:3001/whip";
-    const whip = new WhipSender();
     const pc = new RTCPeerConnection();
     pc.ontrack = (e) => {
       if (e.track.kind === "audio") {
@@ -26,12 +53,55 @@ const App: FC = () => {
 
     pc.addTrack(audio, stream);
 
-    await whip.publish(pc, url);
+    const candidates: RTCIceCandidate[] = [];
+    pc.onicecandidate = ({ candidate }) => {
+      if (candidate) {
+        candidates.push(candidate);
+        if (pc.remoteDescription) {
+          for (const c of candidates) {
+            const payload: FunctionFrontNegotiationPayloadWhip = c.toJSON();
+            rpc.call("front_negotiation", {
+              userId,
+              payload,
+            } as FunctionFrontNegotiation);
+          }
+        }
+      }
+    };
+    const ws = new WebSocket(endpoint);
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    const rpc = new JsonRpcClient(...websocketAdapter(ws));
+    const frontCall: FunctionFrontCall = {
+      sensors: {
+        nest:
+          NEST_CLIENT_ID &&
+          NEST_CLIENT_SECRET &&
+          NEST_PROJECT_ID &&
+          NEST_REFRESH_TOKEN
+            ? {
+                clientId: NEST_CLIENT_ID,
+                clientSecret: NEST_CLIENT_SECRET,
+                projectId: NEST_PROJECT_ID,
+                refreshToken: NEST_REFRESH_TOKEN,
+              }
+            : undefined,
+        ring: RING_REFRESH_TOKEN
+          ? { refreshToken: RING_REFRESH_TOKEN }
+          : undefined,
+      },
+      userId,
+      offer: offer.sdp!,
+      frontDevice: "whip",
+    };
+    const answer = await rpc.call<FunctionFrontCallResponseWhip>(
+      "front_call",
+      frontCall,
+    );
+    await pc.setRemoteDescription({ type: "answer", sdp: answer });
   };
 
   const inputDevice = async () => {
-    const url = `http://localhost:${Number(inputPort)}/whip`;
-    const whip = new WhipSender();
     const pc = new RTCPeerConnection();
 
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -45,17 +115,64 @@ const App: FC = () => {
     pc.addTrack(audio, stream);
     pc.addTrack(video, stream);
 
-    await whip.publish(pc, url);
+    const candidates: RTCIceCandidate[] = [];
+    pc.onicecandidate = ({ candidate }) => {
+      if (candidate) {
+        candidates.push(candidate);
+        if (pc.remoteDescription) {
+          for (const c of candidates) {
+            const message: FunctionSensorNegotiation = {
+              sensorId: inputSensorId,
+              userId,
+              payload: c.toJSON(),
+            };
+            rpc.call("sensor_negotiation", message);
+          }
+        }
+      }
+    };
+    const ws = new WebSocket(endpoint);
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    const rpc = new JsonRpcClient(...websocketAdapter(ws));
+    const frontCall: FunctionSensorAdd = {
+      sensor: {
+        whip: [
+          {
+            id: inputSensorId,
+            offer: pc.localDescription?.sdp!,
+          },
+        ],
+      },
+      userId,
+    };
+    const [{ negotiation }] = await rpc.call<FunctionSensorAddResponse>(
+      "sensor_add",
+      frontCall,
+    );
+
+    await pc.setRemoteDescription({ type: "answer", sdp: negotiation });
   };
 
   return (
     <div>
       <div>
-        <p>input sensor</p>
+        <p>user id</p>
         <input
-          value={inputPort}
+          value={userId}
           onChange={(e) => {
-            setInputPort(e.target.value);
+            setUserId(e.target.value);
+          }}
+          placeholder="user id"
+        />
+      </div>
+      <div>
+        <p>input sensor</p>
+        <span>sensorId </span>
+        <input
+          value={inputSensorId}
+          onChange={(e) => {
+            setSensorId(e.target.value);
           }}
           placeholder="port"
         />

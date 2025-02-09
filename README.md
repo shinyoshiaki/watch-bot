@@ -26,7 +26,7 @@
 
 - sensorの追加
     - input sensorのinputボタンを押す
-    - (入力欄の数字はデバイスの受け入れポート。複数台sensorを追加する際には別のポート番号を指定する)
+    - (入力欄の文字はデバイスのID。複数台sensorを追加する際には別のIDを指定する)
 - agentの呼び出し
     - call to agentのcallボタンを押す
         - 通話が開始される
@@ -41,31 +41,10 @@
 - Nest
   -https://github.com/potmat/homebridge-google-nest-sdm?tab=readme-ov-file#where-do-the-config-values-come-from
   - 発行した情報は.envの以下に入れる
-    - CLIENT_ID
-    - CLIENT_SECRET
-    - PROJECT_ID
-    - REFRESH_TOKEN
-
-また開発用サーバのコードを書き換える必要があります。
-次のようにnestやringのコメントアウト箇所を解除してください。
-
-```ts
-createSession({
-  accessory: {
-    whip: [{ port: 9999 }],
-    nest: {
-      clientId: CLIENT_ID!,
-      clientSecret: CLIENT_SECRET!,
-      projectId: PROJECT_ID!,
-      refreshToken: REFRESH_TOKEN!,
-    },
-    ring: { refreshToken: RING_REFRESH_TOKEN! },
-  },
-  frontDevice: { name: "whip", port: 3001 },
-  llmApiKey: GEMINI_KEY!,
-});
-
-```
+    - NEST_CLIENT_ID
+    - NEST_CLIENT_SECRET
+    - NEST_PROJECT_ID
+    - NEST_REFRESH_TOKEN
 
 ### Alexaとの連携
 
@@ -75,25 +54,9 @@ Alexaのホームスキルと連携する必要があります。
     - https://developer.amazon.com/ja-JP/docs/alexa/smarthome/steps-to-build-a-smart-home-skill.html
 
 Alexa用のAWS Lamdaの関数はこちら
+
 [./packages/alexa-lamda/src/index.ts](./packages/alexa-lamda/src/index.ts)
 
+ビルドしてバンドルしたファイルをアップロードしてください
 
-また開発用サーバのコードを書き換える必要があります。
-次のようにfrontDeviceの設定をalexaに変更してください。
-
-```ts
-createSession({
-  accessory: {
-    whip: [{ port: 9999 }],
-    // nest: {
-    //   clientId: CLIENT_ID!,
-    //   clientSecret: CLIENT_SECRET!,
-    //   projectId: PROJECT_ID!,
-    //   refreshToken: REFRESH_TOKEN!,
-    // },
-    // ring: { refreshToken: RING_REFRESH_TOKEN! },
-  },
-  frontDevice: { name: "alexa", port: 3001 },
-  llmApiKey: GEMINI_KEY!,
-});
-```
+また、外部デバイス(NestやRingなど)を利用する場合は適切に環境変数の設定をしてください
