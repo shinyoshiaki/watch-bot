@@ -16,6 +16,7 @@
 - .env.templateを.envにリネーム
     - .envファイルを開く
         - GEMINI_KEYにGEMINIのAPIキーを入れる
+            - aistudio.google.comの方、vertexはレートリミットが謎にキツイので開発中はこっちで
 - 開発用サーバを起動
     - RUN `npm run dev`
 - 開発用クライアントを起動
