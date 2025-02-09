@@ -61,6 +61,4 @@ Alexa用のAWS Lamdaの関数はこちら
 
 [./packages/alexa-lamda/src/index.ts](./packages/alexa-lamda/src/index.ts)
 
-ビルドしてバンドルしたファイルをアップロードしてください
-
-また、外部デバイス(NestやRingなど)を利用する場合は適切に環境変数の設定をしてください
+Lamdaにはビルドしてバンドルしたファイルをアップロードしてください。また、外部デバイス(NestやRingなど)を利用する場合は適切に環境変数の設定をしてください
