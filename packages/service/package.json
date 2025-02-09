@@ -45,7 +45,7 @@
     "uuid": "^11.0.5",
     "werift": "^0.21.16",
     "ws": "^8.18.0",
-    "zx": "^8.3.1"
+    "zx": "^8.3.2"
   },
   "devDependencies": {
     "@types/sdp-transform": "^2.4.9",
