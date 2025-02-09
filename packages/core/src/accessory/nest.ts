@@ -101,7 +101,7 @@ export class GoogleNest extends AccessoryDevice {
     });
     audioTransceiver.onTrack.subscribe((track) => {
       track.onReceiveRtp.subscribe((rtp) => {
-        this.onAudio.execute(rtp);
+        this.onAudio.execute(rtp as types.RtpPacket);
       });
     });
 
@@ -110,7 +110,7 @@ export class GoogleNest extends AccessoryDevice {
     });
     videoTransceiver.onTrack.subscribe((track) => {
       track.onReceiveRtp.subscribe((rtp) => {
-        this.onVideo.execute(rtp);
+        this.onVideo.execute(rtp as types.RtpPacket);
       });
       track.onReceiveRtp.once(() => {
         setInterval(

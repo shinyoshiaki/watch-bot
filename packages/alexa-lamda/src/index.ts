@@ -1,4 +1,14 @@
-const { ENDPOINT } = process.env;
+const {
+  ENDPOINT,
+  RING_REFRESH_TOKEN,
+  NEST_CLIENT_ID,
+  NEST_CLIENT_SECRET,
+  NEST_PROJECT_ID,
+  NEST_REFRESH_TOKEN,
+} = process.env;
+
+import { JsonRpcClient, websocketAdapter } from "../../json-rpc/src/index.js";
+import type { FunctionFrontCall } from "../../service/src/schema.js";
 
 export const handler = async (request, context) => {
   log("DEBUG:", "Request", request.directive.header.name);
@@ -89,21 +99,59 @@ export const handler = async (request, context) => {
     request: InitiateSessionWithOffer,
     context,
   ) {
-    const offer = request.directive.payload.offer;
+    const url = "https://api.amazon.com/user/profile";
 
-    const sdpResponse = await fetch(`${ENDPOINT}/offer`, {
-      method: "POST",
+    const response = await fetch(url, {
+      method: "GET",
       headers: {
-        "Content-Type": "application/json",
+        Authorization: `Bearer ${request.directive.endpoint.scope.token}`,
+        Accept: "application/json",
       },
-      body: JSON.stringify({
-        sdp: offer.value,
-        sessionId: request.directive.payload.sessionId,
-      }),
     });
 
-    const sdp = await sdpResponse.text();
-    log("DEBUG", "SDP Response: ", sdp);
+    if (!response.ok) {
+      const msg = `Failed to get user profile: ${response.statusText}`;
+      log("ERROR", "getUserProfile", msg);
+      throw new Error(msg);
+    }
+
+    const data: { user_id: string; name: string; email: string } =
+      await response.json();
+    log("DEBUG", "TokenInfo: ", JSON.stringify(data));
+
+    const offer = request.directive.payload.offer;
+
+    const ws = new WebSocket(ENDPOINT!);
+    await new Promise((resolve) => ws.addEventListener("open", resolve));
+
+    const rpcClient = new JsonRpcClient(...websocketAdapter(ws));
+    const frontCall: FunctionFrontCall = {
+      sensors: {
+        nest:
+          NEST_CLIENT_ID &&
+          NEST_CLIENT_SECRET &&
+          NEST_PROJECT_ID &&
+          NEST_REFRESH_TOKEN
+            ? {
+                clientId: NEST_CLIENT_ID,
+                clientSecret: NEST_CLIENT_SECRET,
+                projectId: NEST_PROJECT_ID,
+                refreshToken: NEST_REFRESH_TOKEN,
+              }
+            : undefined,
+        ring: RING_REFRESH_TOKEN
+          ? { refreshToken: RING_REFRESH_TOKEN }
+          : undefined,
+      },
+      userId: data.user_id,
+      offer: offer.value,
+      frontDevice: "alexa",
+      email: data.email,
+      name: data.name,
+    };
+    const { answer } = await rpcClient.call("front_call", frontCall);
+
+    log("DEBUG", "SDP Response: ", answer);
 
     const event: AnswerGeneratedForSession = {
       event: {
@@ -115,7 +163,7 @@ export const handler = async (request, context) => {
         payload: {
           answer: {
             format: "SDP",
-            value: sdp,
+            value: answer,
           },
         },
       },

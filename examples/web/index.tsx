@@ -19,6 +19,12 @@ const defaultUserId = process.env.USER_ID ?? "";
 // const endpoint = process.env.SERVICE_ENDPOINT ?? "ws://localhost:3001";
 const endpoint = "ws://localhost:3001";
 
+const NEST_CLIENT_ID = process.env.NEST_CLIENT_ID;
+const NEST_CLIENT_SECRET = process.env.NEST_CLIENT_SECRET;
+const NEST_PROJECT_ID = process.env.NEST_PROJECT_ID;
+const NEST_REFRESH_TOKEN = process.env.NEST_REFRESH_TOKEN;
+const RING_REFRESH_TOKEN = process.env.RING_REFRESH_TOKEN;
+
 const App: FC = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [userId, setUserId] = useState<string>(
@@ -67,7 +73,23 @@ const App: FC = () => {
     await pc.setLocalDescription(offer);
     const rpc = new JsonRpcClient(...websocketAdapter(ws));
     const frontCall: FunctionFrontCall = {
-      sensors: {},
+      sensors: {
+        nest:
+          NEST_CLIENT_ID &&
+          NEST_CLIENT_SECRET &&
+          NEST_PROJECT_ID &&
+          NEST_REFRESH_TOKEN
+            ? {
+                clientId: NEST_CLIENT_ID,
+                clientSecret: NEST_CLIENT_SECRET,
+                projectId: NEST_PROJECT_ID,
+                refreshToken: NEST_REFRESH_TOKEN,
+              }
+            : undefined,
+        ring: RING_REFRESH_TOKEN
+          ? { refreshToken: RING_REFRESH_TOKEN }
+          : undefined,
+      },
       userId,
       offer: offer.sdp!,
       frontDevice: "whip",
