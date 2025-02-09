@@ -2,8 +2,8 @@ import * as google from "googleapis";
 import {
   RTCPeerConnection,
   RTCRtpCodecParameters,
-  type RtpPacket,
-} from "werift";
+  type types,
+} from "../imports/werift.js";
 import { AccessoryDevice } from "./base.js";
 
 export interface GoogleNestCredentials {
@@ -43,6 +43,7 @@ export const setupGoogleNest = async ({
 };
 
 export class GoogleNest extends AccessoryDevice {
+  readonly id: string;
   readonly name: string;
   readonly videoCodec: "vp8" | "h264" = "h264";
 
@@ -88,6 +89,7 @@ export class GoogleNest extends AccessoryDevice {
   ) {
     super();
 
+    this.id = props.device.name!;
     this.name = "nest" + props.device.parentRelations?.[0].displayName;
 
     this.pc.connectionStateChange.subscribe((state) => {
@@ -121,6 +123,14 @@ export class GoogleNest extends AccessoryDevice {
     this.pc.createDataChannel("dataSendChannel", { id: 1 });
   }
 
+  get negotiation(): any {
+    return {};
+  }
+
+  async handleNegotiation(p: any): Promise<any> {
+    return {};
+  }
+
   private async init() {
     const offer = await this.pc.createOffer();
     await this.pc.setLocalDescription(offer);
@@ -147,7 +157,7 @@ export class GoogleNest extends AccessoryDevice {
     });
   }
 
-  sendAudio(rtp: RtpPacket): void {}
+  sendAudio(rtp: types.RtpPacket): void {}
 
-  sendVideo(rtp: RtpPacket): void {}
+  sendVideo(rtp: types.RtpPacket): void {}
 }

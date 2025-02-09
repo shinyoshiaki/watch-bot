@@ -15,7 +15,6 @@ RUN npm install --omit=dev
 WORKDIR /app
 COPY submodules/gemini/src submodules/gemini/src
 COPY submodules/werift/packages submodules/werift/packages
-COPY submodules/wish/libs/whip-server/src submodules/wish/libs/whip-server/src
 COPY packages/core/src packages/core/src
 COPY packages/json-rpc/src packages/json-rpc/src
 COPY packages/service/src packages/service/src

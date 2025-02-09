@@ -1,7 +1,7 @@
 const { ENDPOINT, RING, NEST } = process.env;
 
-import { randomUUID } from "crypto";
-import { JsonRpcClient } from "../../json-rpc/src/index.js";
+import { JsonRpcClient, websocketAdapter } from "../../json-rpc/src/index.js";
+import type { FunctionFrontCall } from "../../service/src/schema.js";
 
 export const handler = async (request, context) => {
   log("DEBUG:", "Request", request.directive.header.name);
@@ -92,25 +92,44 @@ export const handler = async (request, context) => {
     request: InitiateSessionWithOffer,
     context,
   ) {
+    const url = "https://api.amazon.com/user/profile";
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${request.directive.endpoint.scope.token}`,
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const msg = `Failed to get user profile: ${response.statusText}`;
+      log("ERROR", "getUserProfile", msg);
+      throw new Error(msg);
+    }
+
+    const data: { user_id: string; name: string; email: string } =
+      await response.json();
+    log("DEBUG", "TokenInfo: ", JSON.stringify(data));
+
     const offer = request.directive.payload.offer;
 
     const ws = new WebSocket(ENDPOINT!);
     await new Promise((resolve) => ws.addEventListener("open", resolve));
 
-    const rpcClient = new JsonRpcClient(
-      (msg: string) => ws.send(msg),
-      (callback) =>
-        ws.addEventListener("message", (msg) => callback(msg.data.toString())),
-    );
-    const { answer } = await rpcClient.call("offer", {
-      userId: randomUUID(),
+    const rpcClient = new JsonRpcClient(...websocketAdapter(ws));
+    const frontCall: FunctionFrontCall = {
+      sensors: {
+        nest: NEST ? JSON.parse(NEST) : undefined,
+        ring: RING ? JSON.parse(RING) : undefined,
+      },
+      userId: data.user_id,
       offer: offer.value,
       frontDevice: "alexa",
-      accessories: {
-        // nest: JSON.parse(NEST ?? "{}"),
-        // ring: { refreshToken: RING! },
-      },
-    });
+      email: data.email,
+      name: data.name,
+    };
+    const { answer } = await rpcClient.call("front_call", frontCall);
 
     log("DEBUG", "SDP Response: ", answer);
 

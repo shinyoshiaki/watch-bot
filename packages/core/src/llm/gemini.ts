@@ -1,27 +1,26 @@
 import {
-  type RTCDataChannel,
-  RTCPeerConnection,
-  type RTCRtpCodecParameters,
-  useOPUS,
-  useVP8,
-} from "werift";
-import {
   type DataChannelRecvMessage,
   type DataChannelSendMessage,
   type GeminiConfig,
   GeminiWebRTCProxy,
 } from "../imports/gemini.js";
+import {
+  RTCPeerConnection,
+  type types,
+  useOPUS,
+  useVP8,
+} from "../imports/werift.js";
 import { LLMAgent, type LLMProps as LLMConfig } from "./base.js";
 
 export class GeminiLLM extends LLMAgent {
   private gemini: GeminiWebRTCProxy;
-  readonly pc: RTCPeerConnection;
+  readonly pc: types.RTCPeerConnection;
 
-  private dc: RTCDataChannel;
+  private dc: types.RTCDataChannel;
 
   constructor(
     readonly props: LLMConfig &
-      GeminiConfig & { videoCodec?: RTCRtpCodecParameters },
+      GeminiConfig & { videoCodec?: types.RTCRtpCodecParameters },
   ) {
     super(props);
 

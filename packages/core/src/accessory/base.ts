@@ -1,26 +1,27 @@
 import {
   Event,
   EventDisposer,
+  MediaRecorder,
   MediaStreamTrack,
-  type RtpPacket,
+  type types,
   useH264,
   useOPUS,
   useVP8,
-} from "werift";
-import { MediaRecorder } from "werift/nonstandard";
+} from "../imports/werift.js";
 
 export type VideoCodec = "vp8" | "h264";
 
 export abstract class AccessoryDevice {
+  abstract readonly id: string;
   abstract readonly name: string;
   abstract videoCodec: VideoCodec;
   readonly audioCodec: "opus";
-  readonly onAudio = new Event<[RtpPacket]>();
-  readonly onVideo = new Event<[RtpPacket]>();
-
-  abstract sendAudio(rtp: RtpPacket): void;
-
-  abstract sendVideo(rtp: RtpPacket): void;
+  readonly onAudio = new Event<[types.RtpPacket]>();
+  readonly onVideo = new Event<[types.RtpPacket]>();
+  abstract sendAudio(rtp: types.RtpPacket): void;
+  abstract sendVideo(rtp: types.RtpPacket): void;
+  abstract get negotiation(): any;
+  abstract handleNegotiation(p: any): Promise<any>;
 
   recording({
     duration,

@@ -1,12 +1,12 @@
 import { randomUUID } from "crypto";
 
-import type { AccessoryDevice } from "./accessory/base.js";
+import type { AccessoryDevice as SensorDevice } from "./accessory/base.js";
 import {
   type GoogleNestCredentials,
   setupGoogleNest,
 } from "./accessory/nest.js";
 import { type RingCredentials, setupRing } from "./accessory/ring/ring.js";
-import { WHIPAccessory, type WHIPAccessoryConfig } from "./accessory/whip.js";
+import { setupWHIPSensor } from "./accessory/whip.js";
 import { AlexaFrontDevice } from "./front/alexa.js";
 import type { FrontDevice } from "./front/base.js";
 import { WHIPFrontDevice } from "./front/whip.js";
@@ -15,6 +15,11 @@ import type { LLMAgent } from "./llm/base.js";
 import { GeminiLLM } from "./llm/gemini.js";
 import { MultiModalLLM } from "./llm/multimodal/gemini.js";
 import { frontLLMPrompt } from "./prompt.js";
+import type {
+  FrontDeviceName,
+  SensorAddResponse,
+  WHIPSensorCredential,
+} from "./schema.js";
 
 interface SessionOptions {
   vertex?: VertexConfig;
@@ -23,27 +28,25 @@ interface SessionOptions {
 
 export class Session {
   readonly id: string;
-  readonly frontDevice: FrontDevice;
+  frontDevice?: FrontDevice;
   frontLLM!: LLMAgent;
   tasks: MultiModalLLM[] = [];
-  accessories: AccessoryDevice[] = [];
+  sensors: SensorDevice[] = [];
 
   constructor(
     readonly props: {
       id?: string;
       llmApiKey: string;
-      frontDevice: FrontDevice;
-      accessories?: AccessoryDevice[];
+      sensors?: SensorDevice[];
       options?: SessionOptions;
     },
   ) {
     this.id = props.id ?? randomUUID();
-    this.frontDevice = props.frontDevice;
-    this.accessories = props.accessories ?? [];
+    this.sensors = props.sensors ?? [];
   }
 
   async init() {
-    const deviceNames = this.accessories.map((d) => d.name);
+    const deviceNames = this.sensors.map((d) => d.name);
 
     this.frontLLM = new GeminiLLM({
       apiKey: this.props.llmApiKey,
@@ -60,7 +63,8 @@ export class Session {
       switch (call.name) {
         case "device_list":
           {
-            this.deviceList({ id: call.id, deviceNames });
+            const deviceNames = this.sensors.map((d) => d.name);
+            this.sensorList({ id: call.id, deviceNames });
           }
           break;
         case "set_task":
@@ -118,21 +122,54 @@ export class Session {
       }
     });
     this.frontLLM.onAudio.subscribe((rtp) => {
-      this.frontDevice.handleAudio(rtp);
+      if (this.frontDevice) {
+        this.frontDevice.handleAudio(rtp);
+      }
     });
     this.frontLLM.onCompleteText.subscribe((text) => {
       console.log("front complete text", text);
       this.frontLLM.muteInputAudio = false;
       this.frontLLM.unmuteAt = Date.now();
     });
-    this.frontDevice.onAudio.subscribe((rtp) => {
-      this.frontLLM.sendAudio(rtp);
-    });
-
     await this.frontLLM.start();
   }
 
-  private async createMultiModalLLM(device: AccessoryDevice, task: string) {
+  setFrontDevice(frontDevice: FrontDeviceName) {
+    const frontDeviceInstance = (() => {
+      switch (frontDevice) {
+        case WHIPFrontDevice.deviceName:
+          return new WHIPFrontDevice();
+        case AlexaFrontDevice.deviceName:
+          return new AlexaFrontDevice();
+        default:
+          throw new Error(`Unknown front device: ${frontDevice}`);
+      }
+    })();
+    this.frontDevice = frontDeviceInstance;
+    frontDeviceInstance.onAudio.subscribe((rtp) => {
+      this.frontLLM.sendAudio(rtp);
+    });
+    return frontDeviceInstance;
+  }
+
+  async addSensor(sensorInit: SessionSensor): Promise<SensorAddResponse[]> {
+    const sensors: SensorDevice[] = await (async () => {
+      if (sensorInit.nest) {
+        return await setupGoogleNest(sensorInit.nest);
+      }
+      if (sensorInit.ring) {
+        return await setupRing(sensorInit.ring);
+      }
+      if (sensorInit.whip) {
+        return [await setupWHIPSensor(sensorInit.whip[0])];
+      }
+      throw new Error("sensor not found");
+    })();
+    this.sensors.push(...sensors);
+    return sensors.map((s) => ({ sensorId: s.id, negotiation: s.negotiation }));
+  }
+
+  private async createMultiModalLLM(device: SensorDevice, task: string) {
     const multiModalLLM = new MultiModalLLM({
       device,
       apiKey: this.props.llmApiKey,
@@ -155,7 +192,7 @@ export class Session {
     return multiModalLLM;
   }
 
-  private deviceList({
+  private sensorList({
     id,
     deviceNames,
   }: { id: string; deviceNames: string[] }) {
@@ -171,7 +208,7 @@ export class Session {
     deviceName,
     task,
   }: { deviceName: string; task: string }) {
-    const device = this.accessories.find((d) => d.name === deviceName);
+    const device = this.sensors.find((d) => d.name === deviceName);
     if (!device) {
       throw new Error("device not found");
     }
@@ -192,82 +229,11 @@ export class Session {
   }
 }
 
-export type FrontDeviceName =
-  | typeof WHIPFrontDevice.deviceName
-  | typeof AlexaFrontDevice.deviceName;
-
-export type SessionAccessory = {
+export type SessionSensor = {
   nest?: GoogleNestCredentials;
   ring?: RingCredentials;
-  whip?: WHIPAccessoryConfig[];
+  whip?: WHIPSensorCredential[];
 };
-
-export const createSession = ({
-  id,
-  frontDevice,
-  llmApiKey,
-  accessories,
-  options,
-}: {
-  id?: string;
-  accessories: SessionAccessory;
-  frontDevice: {
-    name: FrontDeviceName;
-    port?: number;
-  };
-  llmApiKey: string;
-  options?: SessionOptions;
-}) => {
-  const { nest, ring, whip } = accessories;
-
-  const frontDeviceInstance = (() => {
-    switch (frontDevice.name) {
-      case WHIPFrontDevice.deviceName:
-        return new WHIPFrontDevice({ port: frontDevice.port });
-      case AlexaFrontDevice.deviceName:
-        return new AlexaFrontDevice({ port: frontDevice.port });
-    }
-  })();
-
-  const session = new Session({
-    id,
-    frontDevice: frontDeviceInstance,
-    llmApiKey,
-    options,
-  });
-
-  (async () => {
-    const accessories: AccessoryDevice[] = (
-      await Promise.all([
-        (async () => {
-          if (nest) {
-            const devices = await setupGoogleNest({
-              ...nest,
-            });
-            return devices;
-          }
-        })(),
-        (async () => {
-          if (ring) {
-            const devices = await setupRing({
-              ...ring,
-            });
-            return devices;
-          }
-        })(),
-        (async () => {
-          if (whip) {
-            const devices = whip.map((c) => new WHIPAccessory(c));
-            return devices;
-          }
-        })(),
-      ])
-    )
-      .flat()
-      .filter((x): x is NonNullable<typeof x> => x != undefined);
-    session.accessories = accessories;
-    await session.init();
-  })();
-
-  return session;
-};
+export type SessionSensorValue = NonNullable<
+  SessionSensor[keyof SessionSensor]
+>;

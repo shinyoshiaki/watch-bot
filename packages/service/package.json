@@ -18,7 +18,7 @@
     "compile:esm": "esbuild src/main.ts --bundle --platform=node --format=esm --packages=external --target=es2022 --outfile=lib/index.mjs",
     "compile:type": "rm -rf lib && tsc -p tsconfig.production.json --emitDeclarationOnly",
     "lint": "biome check --write src",
-    "server": "tsx watch --env-file=../../.env src/main.ts",
+    "dev": "tsx watch --env-file=../../.env src/main.ts",
     "debug": "esbuild ./examples/client.ts --format=esm --packages=external --bundle --outfile=./debug.mjs && node --env-file=../../.env debug.mjs",
     "ds": "esbuild ./src/main.ts --format=esm --packages=external --bundle --outfile=./ds.mjs && node ds.mjs",
     "type": "tsc -p ./tsconfig.json --noEmit"
@@ -27,7 +27,7 @@
     "@discordjs/opus": "^0.10.0",
     "@google/generative-ai": "^0.21.0",
     "@hono/node-server": "^1.13.7",
-    "@sinclair/typebox": "^0.28.18",
+    "@sinclair/typebox": "^0.34.16",
     "@watch-bot/core": "file:../core",
     "@werift/gemini-webrtc": "^0.0.5",
     "@werift/json-rpc": "file:../json-rpc",

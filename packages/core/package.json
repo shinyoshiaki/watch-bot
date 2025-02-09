@@ -27,7 +27,7 @@
     "@werift/whip-server": "^0.0.1",
     "@google/generative-ai": "^0.21.0",
     "@hono/node-server": "^1.13.7",
-    "@sinclair/typebox": "^0.28.18",
+    "@sinclair/typebox": "^0.34.16",
     "@werift/gemini-webrtc": "^0.0.5",
     "@werift/openai-webrtc": "^0.0.5",
     "googleapis": "^144.0.0",

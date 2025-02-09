@@ -2,10 +2,9 @@ import type { FunctionDeclaration } from "@google/generative-ai";
 import {
   Event,
   MediaStreamTrack,
-  type RTCPeerConnection,
   RtpBuilder,
-  type RtpPacket,
-} from "werift";
+  type types,
+} from "../imports/werift.js";
 
 export interface LLMProps {
   apiKey: string;
@@ -18,7 +17,7 @@ export abstract class LLMAgent {
   readonly onToolCall = new Event<
     [{ name: string; args: object; id: string }]
   >();
-  abstract readonly pc: RTCPeerConnection;
+  abstract readonly pc: types.RTCPeerConnection;
   muteInputAudio = false;
   unmuteAt?: number;
   protected videoTrack = new MediaStreamTrack({ kind: "video" });
@@ -27,8 +26,8 @@ export abstract class LLMAgent {
   taskStartTime?: number;
   private taskInterval?: any;
 
-  readonly onAudio = new Event<[RtpPacket]>();
-  readonly onVideo = new Event<[RtpPacket]>();
+  readonly onAudio = new Event<[types.RtpPacket]>();
+  readonly onVideo = new Event<[types.RtpPacket]>();
   readonly onStreamingText = new Event<[string]>();
   readonly onCompleteText = new Event<[string]>();
   readonly onImageSent = new Event();
@@ -38,12 +37,12 @@ export abstract class LLMAgent {
 
   abstract start(): Promise<void>;
 
-  sendAudio(rtp: RtpPacket) {
+  sendAudio(rtp: types.RtpPacket) {
     const p = this.builder.create(rtp.payload);
     this.audioTrack.writeRtp(p);
   }
 
-  sendVideo(rtp: RtpPacket) {
+  sendVideo(rtp: types.RtpPacket) {
     this.videoTrack.writeRtp(rtp);
   }
 

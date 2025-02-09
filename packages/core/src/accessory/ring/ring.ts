@@ -1,5 +1,5 @@
 import { RingApi, type RingCamera } from "ring-client-api";
-import type { RtpPacket } from "werift";
+import type { types } from "../../imports/werift.js";
 import { AccessoryDevice } from "../base.js";
 import { WeriftPeerConnection } from "./peer.js";
 
@@ -18,6 +18,7 @@ export const setupRing = async (cred: RingCredentials) => {
 };
 
 export class Ring extends AccessoryDevice {
+  id: string;
   name: string;
   readonly videoCodec = "h264";
   static async create(...args: ConstructorParameters<typeof Ring>) {
@@ -28,7 +29,12 @@ export class Ring extends AccessoryDevice {
 
   constructor(private camera: RingCamera) {
     super();
+    this.id = camera.name + camera.id;
     this.name = "ring-" + camera.name;
+  }
+
+  get negotiation(): any {
+    return {};
   }
 
   private async init() {
@@ -44,7 +50,11 @@ export class Ring extends AccessoryDevice {
     });
   }
 
-  sendAudio(rtp: RtpPacket): void {}
+  sendAudio(rtp: types.RtpPacket): void {}
 
-  sendVideo(rtp: RtpPacket): void {}
+  sendVideo(rtp: types.RtpPacket): void {}
+
+  async handleNegotiation(p: any): Promise<any> {
+    return {};
+  }
 }

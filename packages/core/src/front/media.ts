@@ -1,4 +1,4 @@
-import type { RtpPacket } from "werift";
+import type { types } from "../imports/werift.js";
 import { FrontDevice } from "./base.js";
 import { createMicOpusRTP } from "./local/mic.js";
 import { createOpusSpeaker } from "./local/speaker.js";
@@ -11,16 +11,16 @@ export class LocalMediaFrontDevice extends FrontDevice {
     super();
 
     const mic = createMicOpusRTP((rtp) => {
-      this.onAudio.execute(rtp);
+      this.onAudio.execute(rtp as types.RtpPacket);
     });
     mic.start();
   }
 
-  handleAudio(rtp: RtpPacket) {
+  handleAudio(rtp: types.RtpPacket) {
     this.speaker.write(rtp.payload);
   }
 
-  handleVideo(rtp: RtpPacket) {}
+  handleVideo(rtp: types.RtpPacket) {}
 
   async handleOffer(sdp: string) {
     // dummy

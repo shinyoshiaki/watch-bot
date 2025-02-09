@@ -2,9 +2,9 @@ import { randomUUID } from "crypto";
 import { Event, useH264, useVP8 } from "werift";
 import type { AccessoryDevice } from "../../accessory/base.js";
 import type { GeminiConfig } from "../../imports/gemini.js";
+import { multimodalLLMPrompt } from "../../prompt.js";
 import type { LLMAgent } from "../base.js";
 import { GeminiLLM } from "../gemini.js";
-import { multimodalLLMPrompt } from "../../prompt.js";
 
 export class MultiModalLLM {
   id: string = randomUUID();

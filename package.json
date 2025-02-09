@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "#add-package": "npm init -w libs/a",
-    "dev": "tsx watch --env-file=.env examples/dev.ts",
+    "dev": "cd packages/service && npm run dev",
     "lint": "npm run lint --workspaces --if-present",
     "type": "npm run type --workspaces --if-present",
     "upgrade-interactive": "npm-check --update",
@@ -24,6 +24,7 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@google-cloud/vertexai": "^1.9.3",
+    "@shinyoshiaki/json-rpc": "^0.0.1",
     "@types/node": "^20.3.1",
     "esbuild": "^0.18.20",
     "npm-check": "^6.0.1",
