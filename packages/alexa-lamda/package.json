@@ -29,7 +29,7 @@
     "openapi3-ts": "^4.1.2",
     "sdp-transform": "^2.15.0",
     "uuid": "^11.0.5",
-    "werift": "^0.21.16"
+    "werift": "^0.22.0"
   },
   "devDependencies": {
     "@types/sdp-transform": "^2.4.9",

@@ -15,12 +15,16 @@ import type {
   FunctionSensorNegotiation,
 } from "../../packages/service/src/schema.js";
 
-const endpoint = "wss://localhost:3001";
+const defaultUserId = process.env.USER_ID ?? "";
+// const endpoint = process.env.SERVICE_ENDPOINT ?? "ws://localhost:3001";
+const endpoint = "ws://localhost:3001";
 
 const App: FC = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [userId, setUserId] = useState<string>(
-    "web_browser_" + Math.random().toString(36).slice(-8),
+    defaultUserId.length > 0
+      ? defaultUserId
+      : "web_browser_" + Math.random().toString(36).slice(-8),
   );
   const [inputSensorId, setSensorId] = useState<string>(
     Math.random().toString(36).slice(-8),
