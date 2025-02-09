@@ -1,9 +1,9 @@
-export * from "../../../../submodules/werift/packages/webrtc/src/index.js";
-export * from "../../../../submodules/werift/packages/webrtc/src/nonstandard/index.js";
+export * from "werift";
+import { MediaRecorder } from "werift/nonstandard";
+export { MediaRecorder };
 
 import type * as types from "../../../../submodules/werift/packages/webrtc/src/index.js";
 import type * as nonstandard from "../../../../submodules/werift/packages/webrtc/src/nonstandard/index.js";
-
 export type { types, nonstandard };
 
 // import { createRequire } from "module";
